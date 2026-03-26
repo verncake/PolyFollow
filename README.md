@@ -4,13 +4,15 @@
 
 ## 仓库结构
 
-本项目分为三个独立仓库：
+本项目分为三个**独立仓库**，每个仓库有独立的 .git 历史：
 
-| 仓库 | 说明 |
-|------|------|
-| [PolyFollow](https://github.com/verncake/PolyFollow) | 主仓 - 文档和项目规划 |
-| [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend) | FastAPI 后端 - API 服务 |
-| [PolyFollow-Frontend](https://github.com/verncake/PolyFollow-Frontend) | Next.js 前端 - 用户界面 |
+| 仓库 | 说明 | 代码提交位置 |
+|------|------|-------------|
+| [PolyFollow](https://github.com/verncake/PolyFollow) | 主仓 - 文档和项目规划 | ❌ 不存放代码 |
+| [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend) | FastAPI 后端 - API 服务 | ✅ backend 代码 |
+| [PolyFollow-Frontend](https://github.com/verncake/PolyFollow-Frontend) | Next.js 前端 - 用户界面 | ✅ frontend 代码 |
+
+> **重要**: 本仓库 (PolyFollow) 仅存放项目文档。**Backend 和 Frontend 代码分别在各自独立的仓库中**，不要在本仓库提交代码。
 
 ## 项目概述
 

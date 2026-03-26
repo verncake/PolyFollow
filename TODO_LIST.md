@@ -1,23 +1,27 @@
 # TODO List - Polymarket Follow-Alpha System
 
-最后更新: 2026-03-25
+最后更新: 2026-03-26
+
+---
+
+> **多仓库说明**: 本项目分为 3 个独立仓库。Backend 代码在 [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)，Frontend 代码在 [PolyFollow-Frontend](https://github.com/verncake/PolyFollow-Frontend)。本文档仅用于跟踪整体进度。
 
 ---
 
 ## 项目阶段
 
-- [x] Step 1: 基础设施与数据层搭建 (Backend)
-- [x] Step 2: 核心服务层实现 (Backend)
-- [x] Step 3: 排行榜引擎与 API 暴露 (Backend)
-- [ ] Step 4: 前端界面构建 (Frontend)
-- [ ] Step 4.1: Follow-Alpha 协议层与队列基础设施
-- [ ] Step 4.2: Monitor 服务实现 (Producer)
-- [ ] Step 4.3: Worker 执行器实现 (Consumer)
-- [ ] Step 4.4: 10w+ 压力测试与 Go 迁移准备
+- [x] Step 1: 基础设施与数据层搭建 (Backend) → [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)
+- [x] Step 2: 核心服务层实现 (Backend) → [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)
+- [x] Step 3: 排行榜引擎与 API 暴露 (Backend) → [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)
+- [x] Step 4: 前端界面构建 (Frontend) → [PolyFollow-Frontend](https://github.com/verncake/PolyFollow-Frontend)
+- [ ] Step 4.1: Follow-Alpha 协议层与队列基础设施 → [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)
+- [ ] Step 4.2: Monitor 服务实现 (Producer) → [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)
+- [ ] Step 4.3: Worker 执行器实现 (Consumer) → [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)
+- [ ] Step 4.4: 10w+ 压力测试与 Go 迁移准备 → [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend)
 
 ---
 
-## Step 1: 基础设施 ✅
+## Step 1: 基础设施 ✅ (Backend)
 
 | 任务 | 状态 | 备注 |
 |------|------|------|
@@ -63,9 +67,9 @@
 | 排行榜缓存到 Upstash | ✅ | Top 200, 60s TTL |
 | 每日定时任务拉取榜单 | ❌ | 待实现 (APScheduler) |
 
-### Step 3 子任务 (已完成)
+### Step 3 子任务 (已完成，在 PolyFollow-Backend 仓库)
 
-- [x] 创建 `backend/app/services/scoring_service.py` (10维度)
+- [x] 创建 `backend/app/services/scoring_service.py` (10维度) - 在 PolyFollow-Backend
   - [x] Profitability (盈利能力) - P/L 对数归一化
   - [x] Win Rate (胜率) - 过滤小额仓位防刷
   - [x] Profit Factor (盈亏比) - 0-5倍映射
@@ -77,17 +81,17 @@
   - [x] Close Disc. (平仓纪律) - SELL vs REDEEM
   - [x] Capital (资金体量) - log scale
 
-- [x] 创建 `backend/app/services/position_enricher.py`
+- [x] 创建 `backend/app/services/position_enricher.py` - 在 PolyFollow-Backend
   - [x] 交叉引用 Gamma API 获取市场状态
   - [x] 识别 closed/pending_redeem 状态
   - [x] display_status 显示逻辑
 
-- [x] 创建 `backend/app/services/blockchain.py`
+- [x] 创建 `backend/app/services/blockchain.py` - 在 PolyFollow-Backend
   - [x] Polygon USDC.e 余额查询
   - [x] RPC 自动重试机制
   - [x] Decimal 精度处理
 
-- [x] 创建 `backend/app/api/routes/account.py`
+- [x] 创建 `backend/app/api/routes/account.py` - 在 PolyFollow-Backend
   - [x] GET /{address} - 获取地址详情 (含10维度评分)
   - [x] GET /{address}/positions - 获取持仓 (含市场状态)
   - [x] GET /{address}/closed-positions - 已平仓
@@ -96,7 +100,7 @@
   - [x] GET /{address}/stats - 快速统计 (含链上余额)
   - [x] GET /{address}/stats - 支持 ?status= 过滤
 
-- [x] 创建 `backend/app/api/routes/leaderboard.py`
+- [x] 创建 `backend/app/api/routes/leaderboard.py` - 在 PolyFollow-Backend
   - [x] GET / - 获取排行榜 (含10维度评分)
   - [x] GET /top - Top N 交易员
   - [x] GET /trader/{address} - 查找特定交易员
@@ -105,7 +109,7 @@
 
 ---
 
-## Step 4: 前端界面 ✅
+## Step 4: 前端界面 ✅ (Frontend)
 
 | 任务 | 状态 | 备注 |
 |------|------|------|
@@ -116,7 +120,7 @@
 | 对接后端 API | ✅ | React Query |
 | Polymarket 深色主题 | ✅ | #0D0D0D 背景 |
 
-### Step 4 子任务
+### Step 4 子任务 (在 PolyFollow-Frontend 仓库)
 
 - [x] 安装前端依赖
   - [x] Next.js 14
@@ -124,11 +128,11 @@
   - [x] Shadcn UI
   - [x] React Query (@tanstack/react-query)
   - [x] React Table (@tanstack/react-table)
-- [x] 创建 `app/leaderboard/page.tsx`
+- [x] 创建 `frontend/app/leaderboard/page.tsx`
   - [x] 数据表格
   - [x] 排序功能
   - [x] 评分 Badge
-- [x] 创建 `app/profile/[address]/page.tsx`
+- [x] 创建 `frontend/app/profile/[address]/page.tsx`
   - [x] 资金看板
   - [x] Active Positions 列表
   - [x] Closed Positions 列表
@@ -227,8 +231,7 @@ Total: 136 tests passed
 ## 待解决问题
 
 1. **定时任务**: 每日自动拉取榜单 (APScheduler)
-2. **前端初始化**: Next.js 项目需要从零搭建
-3. **跟单功能**: POST /api/v1/follow/{address}
+2. **跟单功能**: POST /api/v1/follow/{address}
 
 ---
 
@@ -241,9 +244,9 @@ Total: 136 tests passed
 4. [x] Redis 缓存排行榜
 
 ### P1 (重要)
-5. [ ] 前端 Next.js 初始化
-6. [ ] /leaderboard 页面
-7. [ ] /address/[slug] 页面
+5. [x] 前端 Next.js 初始化
+6. [x] /leaderboard 页面
+7. [x] /address/[slug] 页面
 
 ### P2 (重要 - 10w+ 支持)
 8. [ ] Follow-Alpha 协议层 (TradeTask)
@@ -253,6 +256,8 @@ Total: 136 tests passed
 ---
 
 ## Phase 4: Follow-Alpha 跟单引擎 (10w+ 用户)
+
+> 所有 Phase 4 任务在 [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend) 仓库中开发。
 
 ### Step 4.1: 协议层与队列基础设施
 
