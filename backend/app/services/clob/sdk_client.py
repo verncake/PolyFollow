@@ -2,8 +2,10 @@
 CLOB API Client using official Polymarket SDK.
 
 Provides market data and trading via py-clob-client SDK.
-Note: The py-clob-client SDK is synchronous, so this wrapper provides a familiar async interface.
+Note: The py-clob-client SDK is synchronous, so this wrapper provides an async interface
+      using asyncio.to_thread to avoid blocking the event loop.
 """
+import asyncio
 from typing import Optional, Any, List, Dict
 from py_clob_client.client import ClobClient
 from py_clob_client.clob_types import OrderArgs, MarketOrderArgs
@@ -99,185 +101,257 @@ class ClobSDKClient:
     # Public Market Data
     # ====================
 
-    def get_server_time(self) -> Dict[str, Any]:
+    async def get_server_time(self) -> Dict[str, Any]:
         """Get CLOB server time."""
-        return _to_dict(self._get_client().get_server_time())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_server_time)
+        return _to_dict(result)
 
-    def get_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
+    async def get_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
         """Get list of markets using cursor pagination."""
-        return _to_dict(self._get_client().get_markets(next_cursor=next_cursor))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_markets, next_cursor)
+        return _to_dict(result)
 
-    def get_market(self, market_id: str) -> Dict[str, Any]:
+    async def get_market(self, market_id: str) -> Dict[str, Any]:
         """Get a specific market."""
-        return _to_dict(self._get_client().get_market(market_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_market, market_id)
+        return _to_dict(result)
 
-    def get_simplified_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
+    async def get_simplified_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
         """Get simplified markets using cursor pagination."""
-        return _to_dict(self._get_client().get_simplified_markets(next_cursor=next_cursor))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_simplified_markets, next_cursor)
+        return _to_dict(result)
 
-    def get_sampling_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
+    async def get_sampling_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
         """Get sampling markets using cursor pagination."""
-        return _to_dict(self._get_client().get_sampling_markets(next_cursor=next_cursor))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_sampling_markets, next_cursor)
+        return _to_dict(result)
 
-    def get_sampling_simplified_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
+    async def get_sampling_simplified_markets(self, next_cursor: str = "MA==") -> List[Dict[str, Any]]:
         """Get sampling simplified markets using cursor pagination."""
-        return _to_dict(self._get_client().get_sampling_simplified_markets(next_cursor=next_cursor))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_sampling_simplified_markets, next_cursor)
+        return _to_dict(result)
 
-    def get_order_book(self, token_id: str) -> Dict[str, Any]:
+    async def get_order_book(self, token_id: str) -> Dict[str, Any]:
         """Get order book for a token."""
-        return _to_dict(self._get_client().get_order_book(token_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_order_book, token_id)
+        return _to_dict(result)
 
-    def get_order_books(self, token_ids: List[str]) -> List[Dict[str, Any]]:
+    async def get_order_books(self, token_ids: List[str]) -> List[Dict[str, Any]]:
         """Get order books for multiple tokens."""
-        return _to_dict(self._get_client().get_order_books(token_ids))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_order_books, token_ids)
+        return _to_dict(result)
 
-    def get_price(self, token_id: str, side: str) -> float:
+    async def get_price(self, token_id: str, side: str) -> float:
         """Get best bid/ask price."""
-        return self._get_client().get_price(token_id, side)
+        client = self._get_client()
+        return await asyncio.to_thread(client.get_price, token_id, side)
 
-    def get_prices(self, token_ids: List[str], sides: List[str]) -> List[Dict[str, Any]]:
+    async def get_prices(self, token_ids: List[str], sides: List[str]) -> List[Dict[str, Any]]:
         """Get prices for tokens."""
-        return _to_dict(self._get_client().get_prices(token_ids, sides))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_prices, token_ids, sides)
+        return _to_dict(result)
 
-    def get_midpoint(self, token_id: str) -> float:
+    async def get_midpoint(self, token_id: str) -> float:
         """Get mid-market price."""
-        return self._get_client().get_midpoint(token_id)
+        client = self._get_client()
+        return await asyncio.to_thread(client.get_midpoint, token_id)
 
-    def get_midpoints(self, token_ids: List[str]) -> List[Dict[str, Any]]:
+    async def get_midpoints(self, token_ids: List[str]) -> List[Dict[str, Any]]:
         """Get mid-market prices for multiple tokens."""
-        return _to_dict(self._get_client().get_midpoints(token_ids))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_midpoints, token_ids)
+        return _to_dict(result)
 
-    def get_spread(self, token_id: str) -> Dict[str, Any]:
+    async def get_spread(self, token_id: str) -> Dict[str, Any]:
         """Get bid-ask spread."""
-        return _to_dict(self._get_client().get_spread(token_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_spread, token_id)
+        return _to_dict(result)
 
-    def get_spreads(self, token_ids: List[str]) -> List[Dict[str, Any]]:
+    async def get_spreads(self, token_ids: List[str]) -> List[Dict[str, Any]]:
         """Get spreads for multiple tokens."""
-        return _to_dict(self._get_client().get_spreads(token_ids))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_spreads, token_ids)
+        return _to_dict(result)
 
-    def get_last_trade_price(self, token_id: str) -> float:
+    async def get_last_trade_price(self, token_id: str) -> float:
         """Get last trade price."""
-        return self._get_client().get_last_trade_price(token_id)
+        client = self._get_client()
+        return await asyncio.to_thread(client.get_last_trade_price, token_id)
 
-    def get_last_trades_prices(self, token_ids: List[str]) -> List[Dict[str, Any]]:
+    async def get_last_trades_prices(self, token_ids: List[str]) -> List[Dict[str, Any]]:
         """Get last trade prices for multiple tokens."""
-        return _to_dict(self._get_client().get_last_trades_prices(token_ids))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_last_trades_prices, token_ids)
+        return _to_dict(result)
 
-    def get_fee_rate(self, token_id: Optional[str] = None) -> float:
+    async def get_fee_rate(self, token_id: Optional[str] = None) -> float:
         """Get fee rate."""
-        return self._get_client().get_fee_rate_bps(token_id)
+        client = self._get_client()
+        return await asyncio.to_thread(client.get_fee_rate_bps, token_id)
 
-    def get_tick_size(self, token_id: Optional[str] = None) -> float:
+    async def get_tick_size(self, token_id: Optional[str] = None) -> float:
         """Get tick size."""
-        return self._get_client().get_tick_size(token_id)
+        client = self._get_client()
+        return await asyncio.to_thread(client.get_tick_size, token_id)
 
-    def get_neg_risk(self, token_id: Optional[str] = None) -> bool:
+    async def get_neg_risk(self, token_id: Optional[str] = None) -> bool:
         """Get neg risk status."""
-        return self._get_client().get_neg_risk(token_id)
+        client = self._get_client()
+        return await asyncio.to_thread(client.get_neg_risk, token_id)
 
     # ====================
     # Trading (Authenticated)
     # ====================
 
-    def create_order(self, order_args: OrderArgs) -> Dict[str, Any]:
+    async def create_order(self, order_args: OrderArgs) -> Dict[str, Any]:
         """Create a limit order."""
-        return _to_dict(self._get_client().create_order(order_args))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.create_order, order_args)
+        return _to_dict(result)
 
-    def create_market_order(self, order_args: MarketOrderArgs) -> Dict[str, Any]:
+    async def create_market_order(self, order_args: MarketOrderArgs) -> Dict[str, Any]:
         """Create a market order (FOK)."""
-        return _to_dict(self._get_client().create_market_order(order_args))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.create_market_order, order_args)
+        return _to_dict(result)
 
-    def cancel(self, order_id: str) -> Dict[str, Any]:
+    async def cancel(self, order_id: str) -> Dict[str, Any]:
         """Cancel a specific order."""
-        return _to_dict(self._get_client().cancel(order_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.cancel, order_id)
+        return _to_dict(result)
 
-    def cancel_all(self) -> Dict[str, Any]:
+    async def cancel_all(self) -> Dict[str, Any]:
         """Cancel all open orders."""
-        return _to_dict(self._get_client().cancel_all())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.cancel_all)
+        return _to_dict(result)
 
-    def cancel_orders(self, order_ids: List[str]) -> Dict[str, Any]:
+    async def cancel_orders(self, order_ids: List[str]) -> Dict[str, Any]:
         """Cancel multiple orders."""
-        return _to_dict(self._get_client().cancel_orders(order_ids))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.cancel_orders, order_ids)
+        return _to_dict(result)
 
-    def cancel_market_orders(self, condition_id: str) -> Dict[str, Any]:
+    async def cancel_market_orders(self, condition_id: str) -> Dict[str, Any]:
         """Cancel all orders for a market."""
-        return _to_dict(self._get_client().cancel_market_orders(condition_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.cancel_market_orders, condition_id)
+        return _to_dict(result)
 
-    def get_orders(self, **kwargs) -> List[Dict[str, Any]]:
+    async def get_orders(self, **kwargs) -> List[Dict[str, Any]]:
         """Get open orders."""
-        return _to_dict(self._get_client().get_orders(**kwargs))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_orders, **kwargs)
+        return _to_dict(result)
 
-    def get_order(self, order_id: str) -> Dict[str, Any]:
+    async def get_order(self, order_id: str) -> Dict[str, Any]:
         """Get a specific order."""
-        return _to_dict(self._get_client().get_order(order_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_order, order_id)
+        return _to_dict(result)
 
-    def get_trades(self, **kwargs) -> List[Dict[str, Any]]:
+    async def get_trades(self, **kwargs) -> List[Dict[str, Any]]:
         """Get user trades."""
-        return _to_dict(self._get_client().get_trades(**kwargs))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_trades, **kwargs)
+        return _to_dict(result)
 
-    def get_builder_trades(self, **kwargs) -> List[Dict[str, Any]]:
+    async def get_builder_trades(self, **kwargs) -> List[Dict[str, Any]]:
         """Get builder trades."""
-        return _to_dict(self._get_client().get_builder_trades(**kwargs))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_builder_trades, **kwargs)
+        return _to_dict(result)
 
-    def post_heartbeat(self, order_ids: List[str]) -> Dict[str, Any]:
+    async def post_heartbeat(self, order_ids: List[str]) -> Dict[str, Any]:
         """Send heartbeat for orders."""
-        return _to_dict(self._get_client().post_heartbeat(order_ids))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.post_heartbeat, order_ids)
+        return _to_dict(result)
 
-    def are_orders_scoring(self, order_ids: List[str]) -> bool:
+    async def are_orders_scoring(self, order_ids: List[str]) -> bool:
         """Check if orders are being scored."""
-        return self._get_client().are_orders_scoring(order_ids)
+        client = self._get_client()
+        return await asyncio.to_thread(client.are_orders_scoring, order_ids)
 
     # ====================
     # API Key Management
     # ====================
 
-    def create_or_derive_api_creds(self) -> Dict[str, Any]:
+    async def create_or_derive_api_creds(self) -> Dict[str, Any]:
         """Create or derive API credentials."""
-        return _to_dict(self._get_client().create_or_derive_api_creds())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.create_or_derive_api_creds)
+        return _to_dict(result)
 
-    def get_api_keys(self) -> List[Dict[str, Any]]:
+    async def get_api_keys(self) -> List[Dict[str, Any]]:
         """Get all API keys."""
-        return _to_dict(self._get_client().get_api_keys())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_api_keys)
+        return _to_dict(result)
 
-    def delete_api_key(self, key_id: str) -> Dict[str, Any]:
+    async def delete_api_key(self, key_id: str) -> Dict[str, Any]:
         """Delete an API key."""
-        return _to_dict(self._get_client().delete_api_key(key_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.delete_api_key, key_id)
+        return _to_dict(result)
 
     # ====================
     # Balance & Allowance
     # ====================
 
-    def get_balance_allowance(self) -> Dict[str, Any]:
+    async def get_balance_allowance(self) -> Dict[str, Any]:
         """Get balance and allowance."""
-        return _to_dict(self._get_client().get_balance_allowance())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_balance_allowance)
+        return _to_dict(result)
 
-    def update_balance_allowance(self) -> Dict[str, Any]:
+    async def update_balance_allowance(self) -> Dict[str, Any]:
         """Update balance and allowance."""
-        return _to_dict(self._get_client().update_balance_allowance())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.update_balance_allowance)
+        return _to_dict(result)
 
     # ====================
     # Notifications
     # ====================
 
-    def get_notifications(self) -> List[Dict[str, Any]]:
+    async def get_notifications(self) -> List[Dict[str, Any]]:
         """Get notifications."""
-        return _to_dict(self._get_client().get_notifications())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_notifications)
+        return _to_dict(result)
 
-    def drop_notifications(self) -> Dict[str, Any]:
+    async def drop_notifications(self) -> Dict[str, Any]:
         """Drop notifications."""
-        return _to_dict(self._get_client().drop_notifications())
+        client = self._get_client()
+        result = await asyncio.to_thread(client.drop_notifications)
+        return _to_dict(result)
 
-    def get_address(self) -> str:
+    async def get_address(self) -> str:
         """Get wallet address."""
-        return self._get_client().get_address()
+        client = self._get_client()
+        return await asyncio.to_thread(client.get_address)
 
     # ====================
     # Market Data Events
     # ====================
 
-    def get_market_trades_events(self, condition_id: str) -> List[Dict[str, Any]]:
+    async def get_market_trades_events(self, condition_id: str) -> List[Dict[str, Any]]:
         """Get market trades events."""
-        return _to_dict(self._get_client().get_market_trades_events(condition_id))
+        client = self._get_client()
+        result = await asyncio.to_thread(client.get_market_trades_events, condition_id)
+        return _to_dict(result)
 
 
 # Singleton instance

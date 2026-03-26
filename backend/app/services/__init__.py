@@ -70,51 +70,6 @@ from app.services.blockchain import (
     WalletBalance,
     get_blockchain_client,
 )
-from app.services.gamma import GammaClient, get_gamma_client, close_gamma_client
-from app.services.data import DataClient, get_data_client, close_data_client
-from app.services.clob import (
-    ClobHTTPClient as ClobClient,
-    get_clob_client,
-    close_clob_client,
-    ClobSDKClient,
-    get_clob_sdk_client,
-    configure_clob_sdk_client,
-)
-from app.services.websocket import (
-    PolymarketWebSocket,
-    MarketDataStreamer,
-    WebSocketChannel,
-)
-from app.services.auth import (
-    WalletAuthenticator,
-    get_wallet_authenticator,
-    configure_wallet_authenticator,
-    TradeClient,
-    get_trade_client,
-    close_trade_client,
-    RewardsClient,
-    get_rewards_client,
-    close_rewards_client,
-    RebatesClient,
-    get_rebates_client,
-    close_rebates_client,
-    BridgeClient,
-    get_bridge_client,
-    close_bridge_client,
-    RelayerClient,
-    get_relayer_client,
-    close_relayer_client,
-)
-from app.services.account_service import (
-    calculate_unrealized_pnl,
-    calculate_realized_pnl,
-    calculate_position_pnl,
-    calculate_win_rate,
-    calculate_profit_factor,
-    calculate_account_summary,
-    PositionPnL,
-    AccountSummary,
-)
 
 __all__ = [
     # Gamma API

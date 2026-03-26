@@ -4,6 +4,7 @@ Position Enricher Service.
 Cross-references positions with Gamma API to determine accurate position status.
 Handles the case where a market has ended (closed/resolved) but user hasn't redeemed.
 """
+import asyncio
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -91,20 +92,19 @@ class PositionEnricher:
         slugs: List[str]
     ) -> Dict[str, Dict[str, Any]]:
         """
-        Fetch market statuses in batch.
+        Fetch market statuses in batch using parallel requests.
 
         Returns:
             Dict mapping slug -> market info with status fields
         """
         statuses = {}
 
-        # Gamma API doesn't have batch by slugs, so we fetch individually
-        # In production, you might want to cache these
-        for slug in slugs:
+        async def fetch_single(slug: str) -> tuple[str, Dict[str, Any]]:
+            """Fetch a single market and return slug -> status mapping."""
             try:
                 market = await self.gamma_client.get_market_by_slug(slug)
                 if market:
-                    statuses[slug] = {
+                    return slug, {
                         "closed": market.get("closed", False),
                         "active": market.get("active", False),
                         "accepting_orders": market.get("acceptingOrders", True),
@@ -112,14 +112,21 @@ class PositionEnricher:
                         "last_trade_price": market.get("lastTradePrice"),
                     }
             except Exception:
-                # If we can't fetch, assume active
-                statuses[slug] = {
-                    "closed": False,
-                    "active": True,
-                    "accepting_orders": True,
-                    "end_date": None,
-                    "last_trade_price": None,
-                }
+                pass
+            # If we can't fetch, assume active
+            return slug, {
+                "closed": False,
+                "active": True,
+                "accepting_orders": True,
+                "end_date": None,
+                "last_trade_price": None,
+            }
+
+        # Fetch all in parallel
+        results = await asyncio.gather(*[fetch_single(slug) for slug in slugs])
+
+        for slug, status in results:
+            statuses[slug] = status
 
         return statuses
 

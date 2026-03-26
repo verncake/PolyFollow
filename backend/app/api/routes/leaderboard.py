@@ -61,21 +61,14 @@ async def get_leaderboard(
     # Calculate scores for each entry
     scored_entries = []
 
-    for entry in raw_leaderboard:
+    # Batch size for parallel API calls to avoid rate limiting
+    BATCH_SIZE = 10
+
+    def process_entry(entry: dict, positions: list, closed_positions: list, trades: list) -> dict:
+        """Process a single entry with its fetched data."""
         address = entry.get("address", "")
-        if not address:
-            continue
-
-        # Get positions and trades for scoring
-        positions, closed_positions, trades = await asyncio.gather(
-            data_client.get_positions(user=address),
-            data_client.get_closed_positions(user=address),
-            data_client.get_trades(user=address),
-        )
-
         scores = get_address_scores(address, positions, closed_positions, trades)
-
-        scored_entries.append({
+        return {
             "rank": entry.get("rank", 0),
             "address": address.lower(),
             "score": scores.total_score,
@@ -87,7 +80,54 @@ async def get_leaderboard(
             # Additional data from leaderboard
             "volume": entry.get("volume"),
             "category": entry.get("category"),
-        })
+        }
+
+    # Fetch all data in parallel batches
+    for i in range(0, len(raw_leaderboard), BATCH_SIZE):
+        batch = raw_leaderboard[i:i + BATCH_SIZE]
+
+        # Create tasks for all entries in batch
+        tasks = []
+        for entry in batch:
+            address = entry.get("address", "")
+            if not address:
+                tasks.append(None)  # Placeholder for skipped entries
+            else:
+                tasks.append((
+                    data_client.get_positions(user=address),
+                    data_client.get_closed_positions(user=address),
+                    data_client.get_trades(user=address),
+                ))
+
+        # Execute batch in parallel
+        results = await asyncio.gather(
+            *[t if t is None else asyncio.gather(*t) for t in tasks],
+            return_exceptions=True
+        )
+
+        # Process results
+        for entry, result in zip(batch, results):
+            address = entry.get("address", "")
+            if not address:
+                continue
+            if isinstance(result, Exception):
+                # On error, use empty data
+                scores = get_address_scores(address, [], [], [])
+                scored_entries.append({
+                    "rank": entry.get("rank", 0),
+                    "address": address.lower(),
+                    "score": scores.total_score,
+                    "data_quality": scores.data_quality,
+                    "win_rate": scores.win_rate,
+                    "profit_factor": scores.profit_factor,
+                    "total_trades": 0,
+                    "dimensions": scores.to_dict()["dimensions"],
+                    "volume": entry.get("volume"),
+                    "category": entry.get("category"),
+                })
+            else:
+                positions, closed_positions, trades = result
+                scored_entries.append(process_entry(entry, positions, closed_positions, trades))
 
     # Sort by score descending
     scored_entries.sort(key=lambda x: x["score"], reverse=True)
