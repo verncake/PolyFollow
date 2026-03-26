@@ -2,6 +2,16 @@
 
 跟单系统 - 追踪 Polymarket 交易员的持仓和业绩表现。
 
+## 仓库结构
+
+本项目分为三个独立仓库：
+
+| 仓库 | 说明 |
+|------|------|
+| [PolyFollow](https://github.com/verncake/PolyFollow) | 主仓 - 文档和项目规划 |
+| [PolyFollow-Backend](https://github.com/verncake/PolyFollow-Backend) | FastAPI 后端 - API 服务 |
+| [PolyFollow-Frontend](https://github.com/verncake/PolyFollow-Frontend) | Next.js 前端 - 用户界面 |
+
 ## 项目概述
 
 本项目旨在构建一个高并发、低延迟的 Web3 自动化跟单与数据分析平台。
@@ -33,7 +43,7 @@
 | 技术 | 说明 |
 |------|------|
 | **Next.js 14** | App Router |
-| **Tailwind CSS** | 样式 |
+| **Tailwind CSS** | 样式 (Polymarket 深色主题) |
 | **Shadcn UI** | 组件库 |
 | **React Query** | 数据获取 |
 | **Prisma** | ORM |
@@ -48,62 +58,45 @@
 ## 项目结构
 
 ```
-PolymarketFollow/
-├── README.md                    # 项目文档
-├── TODO_LIST.md                 # 开发进度跟踪
-├── CLAUDE.md                    # Claude Code 指导
-│
-├── backend/                     # FastAPI 后端
-│   ├── app/
-│   │   ├── main.py             # FastAPI 入口
-│   │   ├── api/
-│   │   │   └── routes/         # API 路由
-│   │   │       ├── account.py  # 账户 API
-│   │   │       └── leaderboard.py # 排行榜 API
-│   │   ├── core/
-│   │   │   ├── config.py      # 配置管理 (dotenv)
-│   │   │   └── redis.py        # Redis 连接
-│   │   ├── schemas/
-│   │   │   └── schemas.py      # Pydantic 验证模型
-│   │   └── services/
-│   │       ├── base.py          # 基础 HTTP 客户端
-│   │       ├── account_service.py  # P/L 计算服务
-│   │       ├── scoring_service.py   # 10维度评分
-│   │       ├── position_enricher.py # 仓位状态富化
-│   │       ├── blockchain.py     # 链上余额查询
-│   │       ├── gamma/           # Gamma API 客户端
-│   │       ├── data/            # Data API 客户端
-│   │       ├── clob/            # CLOB API 客户端
-│   │       ├── websocket/       # WebSocket 客户端
-│   │       └── auth/            # 认证客户端
-│   ├── tests/                  # pytest 测试 (136 tests)
-│   ├── .env                    # 环境变量
-│   ├── .gitignore              # Git 忽略配置
-│   └── requirements.txt        # Python 依赖
-│
-└── frontend/                   # Next.js 前端 (TODO)
-    ├── app/
-    │   ├── leaderboard/        # 排行榜页面
-    │   └── address/[slug]/     # 地址详情页面
-    ├── components/             # UI 组件
-    ├── lib/                    # 工具函数
-    └── prisma/
-        └── schema.prisma       # Prisma 数据模型
+PolyFollow/                           # 主仓 - 文档
+├── README.md                         # 项目文档
+├── TODO_LIST.md                     # 开发进度跟踪
+├── PROJECT_PROMOT_PHASE1-2.md      # 开发指导文档
+└── CLAUDE.md                        # Claude Code 指导
+
+PolyFollow-Backend/                   # 后端仓库
+├── app/
+│   ├── main.py                     # FastAPI 入口
+│   ├── api/routes/                # API 路由
+│   ├── core/                       # 配置与 Redis
+│   ├── schemas/                    # Pydantic 模型
+│   └── services/                    # 业务逻辑
+├── tests/                          # pytest 测试
+├── requirements.txt                 # Python 依赖
+└── pyproject.toml                  # 项目配置
+
+PolyFollow-Frontend/                  # 前端仓库
+├── app/
+│   ├── leaderboard/page.tsx        # 排行榜页面
+│   └── profile/[address]/page.tsx   # 地址详情页面
+├── components/                      # UI 组件
+├── lib/                            # API 客户端
+└── package.json                    # Node 依赖
 ```
 
 ## API 架构
 
 ### 已实现的 API 服务
 
-| 模块 | 文件 | 方法数 | 说明 |
-|------|------|--------|------|
-| **Gamma API** | `services/gamma/client.py` | 30 | Markets, Events, Tags, Profiles |
-| **Data API** | `services/data/client.py` | 12 | Positions, Trades, Activity, Leaderboard |
-| **CLOB HTTP** | `services/clob/client.py` | 20 | Order Book, Prices, Spreads |
-| **CLOB SDK** | `services/clob/sdk_client.py` | 41 | 完整交易支持 |
-| **WebSocket** | `services/websocket/client.py` | - | Market, User, Sports 频道 |
-| **Auth** | `services/auth/*.py` | 38+ | Trade, Rewards, Rebates, Bridge |
-| **Blockchain** | `services/blockchain.py` | - | Polygon USDC.e 余额查询 |
+| 模块 | 方法数 | 说明 |
+|------|--------|------|
+| **Gamma API** | 30 | Markets, Events, Tags, Profiles |
+| **Data API** | 12 | Positions, Trades, Activity, Leaderboard |
+| **CLOB HTTP** | 20 | Order Book, Prices, Spreads |
+| **CLOB SDK** | 41 | 完整交易支持 |
+| **WebSocket** | - | Market, User, Sports 频道 |
+| **Auth** | 38+ | Trade, Rewards, Rebates, Bridge |
+| **Blockchain** | - | Polygon USDC.e 余额查询 |
 
 ### API 路由
 
@@ -117,8 +110,6 @@ GET  /api/v1/account/{address}/stats      # 快速统计 (含链上余额)
 GET  /api/v1/leaderboard                 # 排行榜
 GET  /api/v1/leaderboard/top             # Top N 交易员
 GET  /api/v1/leaderboard/trader/{address} # 查找交易员
-POST /api/v1/follow/{address}             # 关注交易员 (TODO)
-DELETE /api/v1/unfollow/{address}         # 取消关注 (TODO)
 ```
 
 ### 10维度评分系统
@@ -136,32 +127,12 @@ DELETE /api/v1/unfollow/{address}         # 取消关注 (TODO)
 | **Close Discipline** | 10% | 平仓纪律 (SELL vs REDEEM) |
 | **Capital** | 5% | 资金体量 (log scale) |
 
-## 环境变量
-
-```env
-# Polygon RPC
-POLYGON_RPC_URL=https://polygon.drpc.org
-
-# Supabase
-SUPABASE_URL=https://nlkvfiqtzlubwqnmefej.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_xxx
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_xxx
-
-# Database
-DATABASE_URL=postgresql+asyncpg://...
-DIRECT_URL=postgresql+asyncpg://...
-
-# Upstash Redis
-UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
-UPSTASH_REDIS_REST_TOKEN=xxx
-```
-
 ## 快速开始
 
 ### 后端
 
 ```bash
-cd backend
+cd PolyFollow-Backend
 
 # 创建虚拟环境
 python3 -m venv venv
@@ -170,41 +141,24 @@ source venv/bin/activate  # Linux/Mac
 # 安装依赖
 pip install -r requirements.txt
 
-# 运行开发服务器 (127.0.0.1)
+# 运行开发服务器
 uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 # 运行测试
 pytest tests/ -v
 ```
 
-### 测试
+### 前端
 
 ```bash
-# 运行所有测试
-pytest tests/ -v
+cd PolyFollow-Frontend
 
-# 查看覆盖率
-pytest tests/ --cov=app/services --cov-report=html
+# 安装依赖
+npm install
+
+# 运行开发服务器
+npm run dev
 ```
-
-## 数据库
-
-使用 Supabase PostgreSQL，表结构:
-
-| 表名 | 说明 |
-|------|------|
-| `users` | 用户账户 |
-| `followed_addresses` | 关注关系 |
-| `leaderboard_addresses` | 排行榜交易员 |
-| `positions` | 仓位记录 |
-| `trades` | 交易历史 |
-
-## 开发规范
-
-1. **全异步 I/O**: 后端所有网络请求必须使用 `httpx` (async)
-2. **容错限流**: 必须实现 Retry 机制 (指数退避)
-3. **精度**: 金额计算使用 `Decimal`，保留 6 位小数
-4. **缓存**: 排行榜数据先查 Redis，无数据再查数据库
 
 ## 相关文档
 
