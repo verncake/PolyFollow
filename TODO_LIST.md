@@ -105,35 +105,36 @@
 
 ---
 
-## Step 4: 前端界面 ❌
+## Step 4: 前端界面 ✅
 
 | 任务 | 状态 | 备注 |
 |------|------|------|
-| Next.js 项目初始化 | ⚠️ | package.json 存在但无源码 |
-| Shadcn UI 集成 | ❌ | 待安装 |
-| /leaderboard 页面 | ❌ | 待创建 |
-| /address/[slug] 页面 | ❌ | 待创建 |
-| 对接后端 API | ❌ | 待实现 |
-| React Query 集成 | ❌ | 待安装 |
+| Next.js 项目初始化 | ✅ | Next.js 14 + TypeScript |
+| Shadcn UI 集成 | ✅ | Radix UI 组件库 |
+| /leaderboard 页面 | ✅ | React Table + 评分 Badge |
+| /profile/[address] 页面 | ✅ | 资金看板 + 10维度雷达图 |
+| 对接后端 API | ✅ | React Query |
+| Polymarket 深色主题 | ✅ | #0D0D0D 背景 |
 
 ### Step 4 子任务
 
-- [ ] 安装前端依赖
-  - [ ] Next.js 14
-  - [ ] Tailwind CSS
-  - [ ] Shadcn UI
-  - [ ] React Query (@tanstack/react-query)
-  - [ ] React Table (@tanstack/react-table)
-- [ ] 创建 `app/leaderboard/page.tsx`
-  - [ ] 数据表格
-  - [ ] 排序功能
-  - [ ] 评分 Badge
-- [ ] 创建 `app/address/[slug]/page.tsx`
-  - [ ] 资金看板
-  - [ ] Active Positions 列表
-  - [ ] Closed Positions 列表
-  - [ ] Activity 历史
-- [ ] 创建 `lib/supabase.ts` 客户端
+- [x] 安装前端依赖
+  - [x] Next.js 14
+  - [x] Tailwind CSS
+  - [x] Shadcn UI
+  - [x] React Query (@tanstack/react-query)
+  - [x] React Table (@tanstack/react-table)
+- [x] 创建 `app/leaderboard/page.tsx`
+  - [x] 数据表格
+  - [x] 排序功能
+  - [x] 评分 Badge
+- [x] 创建 `app/profile/[address]/page.tsx`
+  - [x] 资金看板
+  - [x] Active Positions 列表
+  - [x] Closed Positions 列表
+  - [x] Activity 历史
+  - [x] 10维度雷达图
+- [x] 创建 `lib/supabase.ts` 客户端
 
 ---
 
