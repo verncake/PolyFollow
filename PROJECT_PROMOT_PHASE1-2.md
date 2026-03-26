@@ -54,15 +54,24 @@ POLYMARKET_GAMMA_API_URL="https://gamma-api.polymarket.com"
 /
 ├── backend/                  # FastAPI 后端项目
 │   ├── app/
-│   │   ├── api/routes/       # 路由层 (e.g., polymarket.py, leaderboard.py)
+│   │   ├── api/routes/       # 路由层 (account.py, leaderboard.py)
 │   │   ├── core/             # 配置与 Redis 连接池 (config.py, redis.py)
-│   │   ├── models/           # 数据库 ORM 模型
-│   │   ├── schemas/          # Pydantic 验证模型 (schemas.py)
-│   │   └── services/         # 核心业务逻辑
-│   │       ├── polymarket_client.py  # 封装第三方 API
-│   │       ├── account_service.py    # 资产与 P/L 计算
-│   │       └── scoring_service.py    # 10维度打分逻辑
-│   └── tests/                # 必须包含 pytest 测试用例
+│   │   ├── models/           # 数据库 ORM 模型 (Prisma schema 定义)
+│   │   ├── schemas/          # Pydantic 验证模型 (task.py - Follow-Alpha 专用)
+│   │   ├── services/         # 核心业务逻辑
+│   │   │   ├── gamma/        # Gamma API 客户端 (30+ 方法)
+│   │   │   ├── data/         # Data API 客户端 (12+ 方法)
+│   │   │   ├── clob/         # CLOB API 客户端 (HTTP + SDK)
+│   │   │   ├── websocket/    # WebSocket 客户端
+│   │   │   ├── auth/         # 认证客户端 (Trade/Rewards/Rebates)
+│   │   │   ├── account_service.py    # 资产与 P/L 计算
+│   │   │   ├── scoring_service.py    # 10维度打分逻辑
+│   │   │   ├── position_enricher.py  # 仓位状态富化
+│   │   │   ├── blockchain.py         # Polygon USDC.e 余额
+│   │   │   └── monitor.py           # 信号监听 (Phase 4 - Producer)
+│   │   └── workers/
+│   │       └── python_worker.py     # 异步执行器 (Phase 4 - Consumer)
+│   └── tests/                # pytest 测试用例 (136 tests)
 │
 └── frontend/                 # Next.js 前端项目
     ├── app/
@@ -113,4 +122,135 @@ POLYMARKET_GAMMA_API_URL="https://gamma-api.polymarket.com"
 - 任务：实现 `/address/[slug]` 页面，顶部展示资金看板，下方使用 Tabs 切换展示 Active/Closed 仓位列表。
 - **完成标志:** 页面渲染成功，对接后端 API 并在本地成功展示数据。
 
-> **Claude，请仔细阅读以上要求。如果你理解了，请从 Step 1 开始执行，生成 Prisma Schema 并进行数据库初始化。完成后请停止，并询问下一步指示。**
+---
+
+## 七、Phase 4: Follow-Alpha 跟单引擎架构 (10w+ 用户支持)
+
+> 本节专为支持 **10w+ 用户并发跟单** 场景设计，强调 **Monitor-Worker 物理分离** 与 **渐进式 Go 迁移路径**。
+
+### 架构设计原则
+
+系统通过 **Upstash Redis** 作为消息总线，分为两个 **独立运行的进程**：
+
+1. **Monitor 进程 (Producer):** 监听交易信号、匹配用户配置、计算下单金额，将任务推入 Redis 队列。
+2. **Worker 进程 (Consumer):** 从队列取任务、调用 API 下单、管理 Nonce 和幂等性。
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Upstash Redis                               │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────────────┐ │
+│  │ ORDER_QUEUE │    │ TASK_CACHE  │    │ FOLLOWER_CONFIG     │ │
+│  │ (List)      │    │ (Hash)      │    │ (Hash)              │ │
+│  └─────────────┘    └─────────────┘    └─────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+         ▲                    ▲                     ▲
+         │                    │                     │
+    Monitor 进程          Worker 进程          API Server
+   (Producer)            (Consumer)          (读配置/查状态)
+
+```
+
+### 目录结构扩展
+
+```text
+backend/app/
+├── services/
+│   ├── monitor.py           # 信号监听与任务分发 (Producer)
+│   └── ...
+├── workers/
+│   └── python_worker.py     # 异步执行器 (Consumer)
+├── schemas/
+│   └── task.py             # TradeTask 协议定义
+└── core/
+    └── redis_queue.py      # 队列操作封装
+```
+
+### TradeTask 协议 (必须实现)
+
+位于 `backend/app/schemas/task.py`：
+
+```python
+from pydantic import BaseModel, Field
+from typing import Optional
+import uuid
+
+class TradeTask(BaseModel):
+    """跟单任务协议 - JSON 序列化，支持跨语言 (Python/Go)"""
+    task_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str                           # 跟单用户 ID
+    target_address: str                    # 被跟单的 "大神" 地址
+    market_id: str                         # 市场 ID (condition_id)
+    outcome: str = Field(pattern="^(Yes|No)$")  # Yes 或 No
+    amount_usdc: str                      # 下单金额 (Decimal string)
+    price_limit: Optional[str] = None      # 限价，None = 市价
+    created_at: str                        # ISO8601 时间戳
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "task_id": "550e8400-e29b-41d4-a716-446655440000",
+                "user_id": "user_123",
+                "target_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f",
+                "market_id": "abc123_condition_id",
+                "outcome": "Yes",
+                "amount_usdc": "10.5",
+                "price_limit": None,
+                "created_at": "2026-03-26T10:00:00Z"
+            }
+        }
+```
+
+### 编码铁律 (Follow-Alpha 专用)
+
+1. **禁止耦合:** Monitor 绝对不能直接调用 Worker 的函数。必须通过 Redis 队列中转。
+2. **禁止同步:** 严禁在 Workers 或 Services 中使用 `requests` 或 `time.sleep`。统一使用 `httpx` 和 `asyncio.sleep`。
+3. **幂等第一:** 执行器在处理 `task_id` 前，必须检查 Redis `TASK_CACHE` (Hash) 或数据库，确保该任务未被执行过。
+4. **JSON Only:** 队列消息必须使用标准 JSON。禁止使用 Pickle（未来 Go Worker 无法解析）。
+5. **Concurrency Control:** Worker 使用 `asyncio.Semaphore` 控制并发数，避免 Polymarket API 限流。
+
+### 渐进式开发路线图 (Phase 4)
+
+**Step 4.1: 协议层与队列基础设施**
+
+- 任务：定义 `TradeTask` Pydantic 模型 (`schemas/task.py`)
+- 任务：实现 `core/redis_queue.py`（`push_task`, `pop_task`, `get_task`, `ack_task`）
+- 任务：实现基于 `task_id` 的 Redis 缓存防重
+- **完成标志:** 可独立运行 `pytest tests/test_redis_queue.py`
+
+**Step 4.2: Monitor 服务实现**
+
+- 任务：实现 `services/monitor.py`（轮询 Polymarket 交易流或订阅 WebSocket）
+- 任务：实现 FollowConfig 匹配逻辑（用户设置的跟单比例/最高限额）
+- 任务：构造 `TradeTask` 并推入 Redis `ORDER_QUEUE`
+- **完成标志:** Mock 一个 "大神" 交易信号，验证队列中正确生成多个用户的 Task
+
+**Step 4.3: Worker 执行器实现**
+
+- 任务：实现 `workers/python_worker.py`（独立入口，`python -m app.workers.python_worker` 启动）
+- 任务：使用 `asyncio.Semaphore` 控制并发数
+- 任务：成功下单后更新 Position 表，失败则记录 ErrorLog
+- **完成标志:** 模拟 100 个并发 Task 涌入，验证执行器不漏单、不重单
+
+**Step 4.4: 10w+ 压力测试与 Go 迁移准备**
+
+- 任务：使用 Locust 或 asyncio 并发模拟 10w 用户场景
+- 任务：优化 Redis 队列操作（Pipeline 批量读写）
+- 任务：准备 Go Worker 原型（保持 Python Worker 接口兼容）
+- **完成标志:** 1000 用户 / 10s 场景下，P99 延迟 < 500ms
+
+---
+
+### 10w+ 用户扩展指南
+
+| 维度 | 当前设计 (Python) | 扩展目标 (Go) |
+|------|------------------|---------------|
+| 单机并发 | ~1000 并发连接 | ~10000 并发连接 |
+| 队列消费 | asyncio.Semaphore | Go Goroutine Pool |
+| Nonce 管理 | 单机内存 + Redis | 分布式锁 (Redlock) |
+| 存储 | Upstash Redis | Kafka + Redis Hybrid |
+
+> **提示:** 当并发量超过 1w 用户时，建议将 Worker 迁移至 Go 语言实现。Python Worker 保持接口兼容，作为过渡方案。
+
+---
+
+> **Claude，请仔细阅读以上要求。如果你理解了，请从 Step 4.1 开始执行，完成 Follow-Alpha 引擎的协议层与队列基础设施。完成后请停止，并询问下一步指示。**
