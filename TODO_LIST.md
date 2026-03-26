@@ -10,6 +10,10 @@
 - [x] Step 2: 核心服务层实现 (Backend)
 - [x] Step 3: 排行榜引擎与 API 暴露 (Backend)
 - [ ] Step 4: 前端界面构建 (Frontend)
+- [ ] Step 4.1: Follow-Alpha 协议层与队列基础设施
+- [ ] Step 4.2: Monitor 服务实现 (Producer)
+- [ ] Step 4.3: Worker 执行器实现 (Consumer)
+- [ ] Step 4.4: 10w+ 压力测试与 Go 迁移准备
 
 ---
 
@@ -240,7 +244,54 @@ Total: 136 tests passed
 6. [ ] /leaderboard 页面
 7. [ ] /address/[slug] 页面
 
-### P2 (优化)
-8. [ ] 定时任务拉取榜单
-9. [ ] Shadcn UI 组件
-10. [ ] 跟单功能实现
+### P2 (重要 - 10w+ 支持)
+8. [ ] Follow-Alpha 协议层 (TradeTask)
+9. [ ] Monitor-Worker 架构
+10. [ ] Go Worker 迁移路径
+
+---
+
+## Phase 4: Follow-Alpha 跟单引擎 (10w+ 用户)
+
+### Step 4.1: 协议层与队列基础设施
+
+| 任务 | 状态 | 备注 |
+|------|------|------|
+| TradeTask Pydantic 模型 | ❌ | `schemas/task.py`，JSON 序列化 |
+| Redis 队列封装 | ❌ | `core/redis_queue.py`，push/pop/ack |
+| TASK_CACHE 防重机制 | ❌ | 基于 task_id 的 Redis Hash |
+| 单元测试 | ❌ | pytest 测试队列操作 |
+
+### Step 4.2: Monitor 服务 (Producer)
+
+| 任务 | 状态 | 备注 |
+|------|------|------|
+| Polymarket 交易流监听 | ❌ | WebSocket 或轮询 |
+| FollowConfig 匹配逻辑 | ❌ | 用户跟单比例/最高限额 |
+| TradeTask 构造与推送 | ❌ | 推入 ORDER_QUEUE |
+
+### Step 4.3: Worker 执行器 (Consumer)
+
+| 任务 | 状态 | 备注 |
+|------|------|------|
+| python_worker.py 入口 | ❌ | `python -m app.workers.python_worker` |
+| asyncio.Semaphore 并发控制 | ❌ | 避免 API 限流 |
+| Position 表更新 | ❌ | 成功下单后 |
+| ErrorLog 错误记录 | ❌ | 失败时记录 |
+
+### Step 4.4: 10w+ 扩展
+
+| 任务 | 状态 | 备注 |
+|------|------|------|
+| Locust 压力测试 | ❌ | 模拟 10w 用户场景 |
+| Redis Pipeline 优化 | ❌ | 批量读写 |
+| Go Worker 原型 | ❌ | 接口兼容 Python Worker |
+
+---
+
+### 架构约束 (Claude 必须遵守)
+
+1. **Monitor ↔ Worker 物理分离**: Monitor 禁止直接调用 Worker 函数，必须通过 Redis 队列
+2. **禁止同步 I/O**: 严禁 `requests` / `time.sleep`，统一 `httpx` / `asyncio.sleep`
+3. **幂等第一**: 处理 task_id 前必须检查 Redis 或数据库
+4. **JSON Only**: 队列消息禁止 Pickle，支持跨语言
