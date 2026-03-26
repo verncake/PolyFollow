@@ -75,177 +75,187 @@ export default function AddressPage({ params }: AddressPageProps) {
   const isLoading = summaryLoading;
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Address Profile</h1>
-          <p className="text-muted-foreground mt-1">
-            Detailed trader analysis and performance metrics
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            refetchSummary();
-            refetchPositions();
-            refetchClosed();
-            refetchActivity();
-          }}
-          disabled={isLoading}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-      </div>
-
-      {summaryError && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Failed to load account data. Please check the address and try again.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {isLoading ? (
-        <div className="space-y-6">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-48 w-full" />
-        </div>
-      ) : summary ? (
-        <>
-          <AddressHeader summary={summary} />
-
-          {stats && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Total Value
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    }).format(stats.total_value || 0)}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    USDC.e Balance (Polygon)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {stats.usdc_e_balance !== null
-                      ? new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(stats.usdc_e_balance)
-                      : "N/A"}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Markets Traded
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {stats.markets_traded_count || 0}
-                  </div>
-                </CardContent>
-              </Card>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">Trader Profile</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Detailed analysis and performance metrics
+              </p>
             </div>
-          )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                refetchSummary();
+                refetchPositions();
+                refetchClosed();
+                refetchActivity();
+              }}
+              disabled={isLoading}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+          </div>
+        </div>
+      </header>
 
-          <Tabs defaultValue="positions" className="mt-8">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="positions">
-                Active Positions
-                {positions && positions.count > 0 && (
-                  <span className="ml-2 text-xs bg-secondary px-1.5 py-0.5 rounded">
-                    {positions.count}
-                  </span>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6">
+        {summaryError && (
+          <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load account data. Please check the address and try again.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {isLoading ? (
+          <div className="space-y-6">
+            <Skeleton className="h-64 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+          </div>
+        ) : summary ? (
+          <>
+            <AddressHeader summary={summary} />
+
+            {/* Quick Stats from /stats endpoint */}
+            {stats && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-muted-foreground font-normal text-xs uppercase tracking-wide">
+                      Portfolio Value
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-semibold">
+                      {new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: "USD",
+                      }).format(stats.total_value || 0)}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-muted-foreground font-normal text-xs uppercase tracking-wide">
+                      USDC.e Balance
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-semibold">
+                      {stats.usdc_e_balance !== null
+                        ? new Intl.NumberFormat("en-US", {
+                            style: "currency",
+                            currency: "USD",
+                          }).format(stats.usdc_e_balance)
+                        : "N/A"}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">Polygon</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-muted-foreground font-normal text-xs uppercase tracking-wide">
+                      Markets Traded
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-semibold">
+                      {stats.markets_traded_count || 0}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Tabs */}
+            <Tabs defaultValue="positions" className="mt-6">
+              <TabsList className="grid w-full grid-cols-3 bg-secondary/50">
+                <TabsTrigger value="positions" className="data-[state=active]:bg-background">
+                  Active
+                  {positions && positions.count > 0 && (
+                    <span className="ml-2 text-xs opacity-60">({positions.count})</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="closed" className="data-[state=active]:bg-background">
+                  Closed
+                  {closedPositions && closedPositions.count > 0 && (
+                    <span className="ml-2 text-xs opacity-60">({closedPositions.count})</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="activity" className="data-[state=active]:bg-background">
+                  Activity
+                  {activity && activity.count > 0 && (
+                    <span className="ml-2 text-xs opacity-60">({activity.count})</span>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="positions" className="mt-4">
+                {positionsLoading ? (
+                  <div className="space-y-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <PositionsList
+                    positions={positions?.positions || []}
+                    title="Active Positions"
+                    emptyMessage="No active positions"
+                  />
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="closed">
-                Closed Positions
-                {closedPositions && closedPositions.count > 0 && (
-                  <span className="ml-2 text-xs bg-secondary px-1.5 py-0.5 rounded">
-                    {closedPositions.count}
-                  </span>
+              </TabsContent>
+
+              <TabsContent value="closed" className="mt-4">
+                {closedLoading ? (
+                  <div className="space-y-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <PositionsList
+                    positions={closedPositions?.positions || []}
+                    title="Closed Positions"
+                    emptyMessage="No closed positions"
+                  />
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="activity">
-                Activity
-                {activity && activity.count > 0 && (
-                  <span className="ml-2 text-xs bg-secondary px-1.5 py-0.5 rounded">
-                    {activity.count}
-                  </span>
+              </TabsContent>
+
+              <TabsContent value="activity" className="mt-4">
+                {activityLoading ? (
+                  <div className="space-y-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : (
+                  <ActivityList
+                    activity={activity?.activity || []}
+                    title="Activity History"
+                    emptyMessage="No activity"
+                  />
                 )}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="positions" className="mt-6">
-              {positionsLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <PositionsList
-                  positions={positions?.positions || []}
-                  title="Active Positions"
-                  emptyMessage="No active positions"
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="closed" className="mt-6">
-              {closedLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <PositionsList
-                  positions={closedPositions?.positions || []}
-                  title="Closed Positions"
-                  emptyMessage="No closed positions"
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="activity" className="mt-6">
-              {activityLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <ActivityList
-                  activity={activity?.activity || []}
-                  title="Activity History"
-                  emptyMessage="No activity"
-                />
-              )}
-            </TabsContent>
-          </Tabs>
-        </>
-      ) : null}
+              </TabsContent>
+            </Tabs>
+          </>
+        ) : null}
+      </main>
     </div>
   );
 }

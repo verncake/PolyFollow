@@ -2,7 +2,6 @@
 
 import { Position } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface PositionsListProps {
@@ -31,18 +30,38 @@ export function PositionsList({
     const status = position.display_status || position.market_status;
 
     if (position.is_redeemable) {
-      return <Badge variant="default">Redeem</Badge>;
+      return (
+        <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30">
+          Redeem
+        </span>
+      );
     }
 
     switch (status) {
       case "active":
-        return <Badge variant="secondary">Active</Badge>;
+        return (
+          <span className="px-2 py-0.5 rounded text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            Active
+          </span>
+        );
       case "closed":
-        return <Badge variant="outline">Closed</Badge>;
+        return (
+          <span className="px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground border border-border">
+            Closed
+          </span>
+        );
       case "pending_redeem":
-        return <Badge variant="destructive">Pending</Badge>;
+        return (
+          <span className="px-2 py-0.5 rounded text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30">
+            Pending
+          </span>
+        );
       default:
-        return <Badge variant="outline">{status || "Unknown"}</Badge>;
+        return (
+          <span className="px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground border border-border">
+            {status || "Unknown"}
+          </span>
+        );
     }
   };
 
@@ -50,7 +69,9 @@ export function PositionsList({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="text-muted-foreground font-normal text-xs uppercase tracking-wide">
+            {title}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-8">{emptyMessage}</p>
@@ -61,60 +82,67 @@ export function PositionsList({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-muted-foreground font-normal text-xs uppercase tracking-wide">
+          {title}
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Market</TableHead>
-              <TableHead>Side</TableHead>
-              <TableHead className="text-right">Size</TableHead>
-              <TableHead className="text-right">Entry</TableHead>
-              <TableHead className="text-right">Current</TableHead>
-              <TableHead className="text-right">P/L</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {positions.map((position, index) => (
-              <TableRow key={position.position_id || index}>
-                <TableCell className="font-medium max-w-[200px] truncate">
-                  {position.market || "Unknown"}
-                </TableCell>
-                <TableCell>
-                  <span
-                    className={
-                      position.side?.toLowerCase() === "yes"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }
-                  >
-                    {position.side || "N/A"}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">{position.size || "0"}</TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(position.entry_price)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(position.current_price)}
-                </TableCell>
-                <TableCell
-                  className={`text-right ${
-                    parseFloat(position.cashPnl || "0") >= 0
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {formatCurrency(position.cashPnl)}
-                </TableCell>
-                <TableCell>{getStatusBadge(position)}</TableCell>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-muted-foreground font-medium h-10">Market</TableHead>
+                <TableHead className="text-muted-foreground font-medium">Side</TableHead>
+                <TableHead className="text-right text-muted-foreground font-medium">Size</TableHead>
+                <TableHead className="text-right text-muted-foreground font-medium">Entry</TableHead>
+                <TableHead className="text-right text-muted-foreground font-medium">Current</TableHead>
+                <TableHead className="text-right text-muted-foreground font-medium">P/L</TableHead>
+                <TableHead className="text-muted-foreground font-medium">Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {positions.map((position, index) => (
+                <TableRow
+                  key={position.position_id || index}
+                  className="hover:bg-muted/30 transition-colors"
+                >
+                  <TableCell className="font-medium max-w-[200px] truncate py-3">
+                    {position.market || "Unknown"}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={
+                        position.side?.toLowerCase() === "yes"
+                          ? "text-emerald-400"
+                          : "text-red-400"
+                      }
+                    >
+                      {position.side || "N/A"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">{position.size || "0"}</TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {formatCurrency(position.entry_price)}
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {formatCurrency(position.current_price)}
+                  </TableCell>
+                  <TableCell
+                    className={`text-right font-medium ${
+                      parseFloat(position.cashPnl || "0") >= 0
+                        ? "text-emerald-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {formatCurrency(position.cashPnl)}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(position)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

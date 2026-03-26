@@ -11,11 +11,11 @@ interface ActivityListProps {
 }
 
 const ACTIVITY_COLORS: Record<string, string> = {
-  TRADE: "bg-blue-100 text-blue-800",
-  REDEEM: "bg-green-100 text-green-800",
-  TRANSFER: "bg-purple-100 text-purple-800",
-  WITHDRAW: "bg-orange-100 text-orange-800",
-  DEPOSIT: "bg-teal-100 text-teal-800",
+  TRADE: "bg-violet-500/20 text-violet-400 border border-violet-500/30",
+  REDEEM: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30",
+  TRANSFER: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
+  WITHDRAW: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
+  DEPOSIT: "bg-teal-500/20 text-teal-400 border border-teal-500/30",
 };
 
 export function ActivityList({
@@ -52,7 +52,9 @@ export function ActivityList({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="text-muted-foreground font-normal text-xs uppercase tracking-wide">
+            {title}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-8">{emptyMessage}</p>
@@ -63,42 +65,51 @@ export function ActivityList({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-muted-foreground font-normal text-xs uppercase tracking-wide">
+          {title}
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Market</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Time</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {activity.map((item, index) => (
-              <TableRow key={item.id || index}>
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      ACTIVITY_COLORS[item.type] || "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {item.type}
-                  </span>
-                </TableCell>
-                <TableCell className="font-medium max-w-[200px] truncate">
-                  {item.market || "N/A"}
-                </TableCell>
-                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(item.timestamp)}
-                </TableCell>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-muted-foreground font-medium h-10">Type</TableHead>
+                <TableHead className="text-muted-foreground font-medium">Market</TableHead>
+                <TableHead className="text-right text-muted-foreground font-medium">Amount</TableHead>
+                <TableHead className="text-muted-foreground font-medium">Time</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {activity.map((item, index) => (
+                <TableRow
+                  key={item.id || index}
+                  className="hover:bg-muted/30 transition-colors"
+                >
+                  <TableCell>
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        ACTIVITY_COLORS[item.type] || "bg-muted text-muted-foreground border border-border"
+                      }`}
+                    >
+                      {item.type}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-medium max-w-[200px] truncate py-3">
+                    {item.market || "N/A"}
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCurrency(item.amount)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {formatDate(item.timestamp)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
